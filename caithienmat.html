@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Điểm Danh Bài Tập Mũi Hàng Ngày</title>
+    <title>Luyện Tập Thay Đổi Diện Mạo</title>
     <style>
         :root {
             --bg-color: #fdf6f0;
@@ -115,12 +115,22 @@
             display: block;
         }
 
+        .step-box {
+            background: #fdfaf7;
+            border-left: 4px solid var(--primary);
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
         button {
             background-color: var(--primary);
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 15px;
+            padding: 14px 20px;
+            font-size: 16px;
             font-weight: bold;
             border-radius: 10px;
             cursor: pointer;
@@ -140,6 +150,13 @@
             margin: 10px 0;
             font-family: monospace;
         }
+
+        .step-label {
+            text-align: center;
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +164,7 @@
 <div class="container">
     <h1>✨ Luyện Tập Thay Đổi Diện Mạo</h1>
 
-    <!-- Khối trạng thái bài tập trong ngày -->
+    <!-- Khối theo dõi tiến độ ca tập -->
     <div class="status-card">
         <div id="todayDate" style="color: #777; font-size: 14px; margin-bottom: 5px;"></div>
         <div class="session-status">
@@ -163,50 +180,38 @@
     <!-- Thông báo nhắc nhở khi vừa mở máy -->
     <div id="actionAlert" class="alert-box" style="display:none;"></div>
 
-    <!-- BÀI TẬP 1 -->
+    <!-- BÀI TẬP 1: TỔNG HỢP CHỈNH MŨI -->
     <div class="exercise-card">
-        <div class="exercise-title">Bài 1: Bóp Cánh Mũi</div>
+        <div class="exercise-title">Bài 1: Chỉnh Mũi</div>
         
+        <!-- Ảnh mô phỏng dùng duy nhất file images/1.jpg -->
         <div class="image-container">
-            <img src="images/1.jpg" alt="Mô phỏng bài tập 1" onerror="this.onerror=null; this.parentElement.innerHTML='<p style=\'padding:15px;text-align:center;color:#999;\'>⚠️ Thiếu ảnh images/1.jpg</p>';">
+            <img src="images/1.jpg" alt="Mô phỏng bài tập chỉnh mũi" onerror="this.onerror=null; this.parentElement.innerHTML='<p style=\'padding:15px;text-align:center;color:#999;\'>⚠️ Thiếu ảnh images/1.jpg</p>';">
         </div>
 
-        <div>
-            👉 <strong>Hướng dẫn:</strong> Bóp 2 cánh mũi và giữ trong 2 giây.<br>
-            ⏱️ <strong>Thời gian:</strong> 15 giây.
+        <div class="step-box">
+            <strong>1. Bóp cánh mũi:</strong> Bóp 2 cánh mũi và giữ trong 2 giây (Tập 15 giây).
         </div>
 
-        <div class="timer-display" id="timer1">15s</div>
-        <button id="btnEx1" onclick="startTimer(15, 'timer1', 'btnEx1', 1)">Tập Bài 1 (15s)</button>
-    </div>
-
-    <!-- BÀI TẬP 2 -->
-    <div class="exercise-card">
-        <div class="exercise-title">Bài 2: Xoay Tròn Cánh Mũi</div>
-        
-        <div class="image-container">
-            <img src="images/2.jpg" alt="Mô phỏng bài tập 2" onerror="this.onerror=null; this.parentElement.innerHTML='<p style=\'padding:15px;text-align:center;color:#999;\'>⚠️ Thiếu ảnh images/2.jpg</p>';">
+        <div class="step-box">
+            <strong>2. Xoay tròn cánh mũi:</strong> Gập ngón tay trỏ và xoay tròn quanh cánh mũi theo chiều <em>từ trên ➔ dưới, từ trong ➔ ngoài</em> (Tập 20 giây).
         </div>
 
-        <div>
-            👉 <strong>Hướng dẫn:</strong> Gập ngón tay trỏ và xoay tròn quanh cánh mũi theo chiều <strong>từ trên ➔ dưới, từ trong ➔ ngoài</strong>.<br>
-            ⏱️ <strong>Thời gian:</strong> 20 giây.
-        </div>
+        <div class="step-label" id="stepLabel">Sẵn sàng tập Bài 1</div>
+        <div class="timer-display" id="timerDisplay">35s</div>
 
-        <div class="timer-display" id="timer2">20s</div>
-        <button id="btnEx2" onclick="startTimer(20, 'timer2', 'btnEx2', 2)">Tập Bài 2 (20s)</button>
+        <button id="btnStart" onclick="startFullRoutine()">Bắt Đầu Tập Bài 1</button>
     </div>
 </div>
 
 <script>
     const TODAY_KEY = new Date().toISOString().slice(0, 10);
-    let currentProgress = { ex1: false, ex2: false };
 
     function getTodayData() {
-        const savedData = JSON.parse(localStorage.getItem('workout_tracker_v2')) || {};
+        const savedData = JSON.parse(localStorage.getItem('workout_tracker_v3')) || {};
         if (savedData.date !== TODAY_KEY) {
             const newData = { date: TODAY_KEY, morning: false, afternoon: false };
-            localStorage.setItem('workout_tracker_v2', JSON.stringify(newData));
+            localStorage.setItem('workout_tracker_v3', JSON.stringify(newData));
             return newData;
         }
         return savedData;
@@ -220,7 +225,7 @@
 
         document.getElementById('todayDate').innerText = `Hôm nay: ${now.toLocaleDateString('vi-VN')}`;
 
-        // Cập nhật trạng thái hiển thị
+        // Cập nhật thẻ hiển thị trạng thái
         const morningBox = document.getElementById('morningBox');
         morningBox.className = data.morning ? "session-box completed" : "session-box pending";
         document.getElementById('morningText').innerText = data.morning ? "Đã xong 🎉" : "Chưa tập";
@@ -230,8 +235,7 @@
         document.getElementById('afternoonText').innerText = data.afternoon ? "Đã xong 🎉" : "Chưa tập";
 
         const alertBox = document.getElementById('actionAlert');
-        const btnEx1 = document.getElementById('btnEx1');
-        const btnEx2 = document.getElementById('btnEx2');
+        const btnStart = document.getElementById('btnStart');
 
         const currentSessionDone = isMorning ? data.morning : data.afternoon;
 
@@ -240,58 +244,73 @@
             alertBox.style.backgroundColor = "#d4edda";
             alertBox.style.color = "#155724";
             alertBox.innerHTML = isMorning 
-                ? "✅ Bạn đã xong ca SÁNG! Chiều mở lại tập ca tiếp theo nhé." 
+                ? "✅ Bạn đã xong Ca SÁNG! Chiều mở lại tập ca tiếp theo nhé." 
                 : "🎉 Bạn đã hoàn thành xuất sắc cả 2 ca tập hôm nay!";
             
-            btnEx1.disabled = true;
-            btnEx2.disabled = true;
+            btnStart.disabled = true;
+            btnStart.innerText = "Đã Hoàn Thành";
         } else {
             alertBox.style.display = "block";
             alertBox.style.backgroundColor = "#fff3cd";
             alertBox.style.color = "#856404";
             alertBox.innerHTML = isMorning 
-                ? "⏰ Bạn đang ở ca SÁNG (1h - 12h)! Hãy tập đủ cả Bài 1 và Bài 2 nhé." 
-                : "⏰ Bạn đang ở ca CHIỀU (13h - 24h)! Hãy tập đủ cả Bài 1 và Bài 2 nhé.";
+                ? "⏰ Bạn đang ở Ca SÁNG (1h - 12h)! Nhấn nút bên dưới để bắt đầu tập Bài 1." 
+                : "⏰ Bạn đang ở Ca CHIỀU (13h - 24h)! Nhấn nút bên dưới để bắt đầu tập Bài 1.";
             
-            btnEx1.disabled = currentProgress.ex1;
-            btnEx2.disabled = currentProgress.ex2;
+            btnStart.disabled = false;
+            btnStart.innerText = "Bắt Đầu Tập Bài 1";
         }
     }
 
-    function startTimer(duration, displayId, buttonId, exNum) {
-        let timer = duration;
-        const display = document.getElementById(displayId);
-        const button = document.getElementById(buttonId);
-        button.disabled = true;
+    function startFullRoutine() {
+        const btnStart = document.getElementById('btnStart');
+        const stepLabel = document.getElementById('stepLabel');
+        const timerDisplay = document.getElementById('timerDisplay');
+        btnStart.disabled = true;
 
-        const interval = setInterval(() => {
-            timer--;
-            display.innerText = timer + "s";
+        // ĐỘNG TÁC 1: Bóp cánh mũi (15 giây)
+        let timer1 = 15;
+        stepLabel.innerText = "Động tác 1: Bóp cánh mũi";
+        timerDisplay.innerText = timer1 + "s";
 
-            if (timer <= 0) {
-                clearInterval(interval);
-                display.innerText = "Hoàn thành! 🎉";
+        const interval1 = setInterval(() => {
+            timer1--;
+            timerDisplay.innerText = timer1 + "s";
+
+            if (timer1 <= 0) {
+                clearInterval(interval1);
                 playBeepSound();
 
-                if (exNum === 1) currentProgress.ex1 = true;
-                if (exNum === 2) currentProgress.ex2 = true;
+                // ĐỘNG TÁC 2: Xoay tròn cánh mũi (20 giây)
+                let timer2 = 20;
+                stepLabel.innerText = "Động tác 2: Xoay tròn cánh mũi";
+                timerDisplay.innerText = timer2 + "s";
 
-                // Nếu hoàn thành cả 2 bài -> Tính là xong ca hiện tại
-                if (currentProgress.ex1 && currentProgress.ex2) {
-                    const data = getTodayData();
-                    const hours = new Date().getHours();
-                    
-                    if (hours >= 1 && hours < 13) {
-                        data.morning = true;
-                    } else {
-                        data.afternoon = true;
+                const interval2 = setInterval(() => {
+                    timer2--;
+                    timerDisplay.innerText = timer2 + "s";
+
+                    if (timer2 <= 0) {
+                        clearInterval(interval2);
+                        playBeepSound();
+                        
+                        stepLabel.innerText = "Hoàn thành Bài 1! 🎉";
+                        timerDisplay.innerText = "0s";
+
+                        // Lưu hoàn thành ca tập tương ứng
+                        const data = getTodayData();
+                        const hours = new Date().getHours();
+                        
+                        if (hours >= 1 && hours < 13) {
+                            data.morning = true;
+                        } else {
+                            data.afternoon = true;
+                        }
+                        
+                        localStorage.setItem('workout_tracker_v3', JSON.stringify(data));
+                        setTimeout(updateUI, 1000);
                     }
-                    
-                    localStorage.setItem('workout_tracker_v2', JSON.stringify(data));
-                    currentProgress = { ex1: false, ex2: false }; // Reset cho ca sau
-                }
-
-                updateUI();
+                }, 1000);
             }
         }, 1000);
     }
