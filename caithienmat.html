@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm Danh Bài Tập Mũi Hàng Ngày</title>
+    <style>
+        :root {
+            --bg-color: #fdf6f0;
+            --card-bg: #ffffff;
+            --primary: #e8a598;
+            --primary-hover: #d88b7d;
+            --text-color: #4a4a4a;
+            --success: #27ae60;
+            --warning: #e67e22;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c2c2c;
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .session-status {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .session-box {
+            padding: 10px 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            width: 45%;
+            font-weight: bold;
+        }
+
+        .completed {
+            background: #e8f8f0;
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .pending {
+            background: #fef5ed;
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        .alert-box {
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .exercise-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .exercise-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #2c2c2c;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 8px;
+        }
+
+        .image-container {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            background-color: #fafafa;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .timer-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary-hover);
+            text-align: center;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ Luyện Tập Thay Đổi Diện Mạo</h1>
+
+    <!-- Khối trạng thái bài tập trong ngày -->
+    <div class="status-card">
+        <div id="todayDate" style="color: #777; font-size: 14px; margin-bottom: 5px;"></div>
+        <div class="session-status">
+            <div id="morningBox" class="session-box pending">
+                ☀️ Ca Sáng<br><span id="morningText">Chưa tập</span>
+            </div>
+            <div id="afternoonBox" class="session-box pending">
+                🌙 Ca Chiều/Tối<br><span id="afternoonText">Chưa tập</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông báo nhắc nhở khi vừa mở máy -->
+    <div id="actionAlert" class="alert-box" style="display:none;"></div>
+
+    <!-- BÀI TẬP 1 -->
+    <div class="exercise-card">
+        <div class="exercise-title">Bài 1: Bóp Cánh Mũi</div>
+        
+        <div class="image-container">
+            <img src="images/1.jpg" alt="Mô phỏng bài tập 1" onerror="this.onerror=null; this.parentElement.innerHTML='<p style=\'padding:15px;text-align:center;color:#999;\'>⚠️ Thiếu ảnh images/1.jpg</p>';">
+        </div>
+
+        <div>
+            👉 <strong>Hướng dẫn:</strong> Bóp 2 cánh mũi và giữ trong 2 giây.<br>
+            ⏱️ <strong>Thời gian:</strong> 15 giây.
+        </div>
+
+        <div class="timer-display" id="timer1">15s</div>
+        <button id="btnEx1" onclick="startTimer(15, 'timer1', 'btnEx1', 1)">Tập Bài 1 (15s)</button>
+    </div>
+
+    <!-- BÀI TẬP 2 -->
+    <div class="exercise-card">
+        <div class="exercise-title">Bài 2: Xoay Tròn Cánh Mũi</div>
+        
+        <div class="image-container">
+            <img src="images/2.jpg" alt="Mô phỏng bài tập 2" onerror="this.onerror=null; this.parentElement.innerHTML='<p style=\'padding:15px;text-align:center;color:#999;\'>⚠️ Thiếu ảnh images/2.jpg</p>';">
+        </div>
+
+        <div>
+            👉 <strong>Hướng dẫn:</strong> Gập ngón tay trỏ và xoay tròn quanh cánh mũi theo chiều <strong>từ trên ➔ dưới, từ trong ➔ ngoài</strong>.<br>
+            ⏱️ <strong>Thời gian:</strong> 20 giây.
+        </div>
+
+        <div class="timer-display" id="timer2">20s</div>
+        <button id="btnEx2" onclick="startTimer(20, 'timer2', 'btnEx2', 2)">Tập Bài 2 (20s)</button>
+    </div>
+</div>
+
+<script>
+    const TODAY_KEY = new Date().toISOString().slice(0, 10);
+    let currentProgress = { ex1: false, ex2: false };
+
+    function getTodayData() {
+        const savedData = JSON.parse(localStorage.getItem('workout_tracker_v2')) || {};
+        if (savedData.date !== TODAY_KEY) {
+            const newData = { date: TODAY_KEY, morning: false, afternoon: false };
+            localStorage.setItem('workout_tracker_v2', JSON.stringify(newData));
+            return newData;
+        }
+        return savedData;
+    }
+
+    function updateUI() {
+        const data = getTodayData();
+        const now = new Date();
+        const hours = now.getHours(); 
+        const isMorning = hours >= 1 && hours < 13; // Sáng: 1h -> 12h59 | Chiều: 13h -> 23h59
+
+        document.getElementById('todayDate').innerText = `Hôm nay: ${now.toLocaleDateString('vi-VN')}`;
+
+        // Cập nhật trạng thái hiển thị
+        const morningBox = document.getElementById('morningBox');
+        morningBox.className = data.morning ? "session-box completed" : "session-box pending";
+        document.getElementById('morningText').innerText = data.morning ? "Đã xong 🎉" : "Chưa tập";
+
+        const afternoonBox = document.getElementById('afternoonBox');
+        afternoonBox.className = data.afternoon ? "session-box completed" : "session-box pending";
+        document.getElementById('afternoonText').innerText = data.afternoon ? "Đã xong 🎉" : "Chưa tập";
+
+        const alertBox = document.getElementById('actionAlert');
+        const btnEx1 = document.getElementById('btnEx1');
+        const btnEx2 = document.getElementById('btnEx2');
+
+        const currentSessionDone = isMorning ? data.morning : data.afternoon;
+
+        if (currentSessionDone) {
+            alertBox.style.display = "block";
+            alertBox.style.backgroundColor = "#d4edda";
+            alertBox.style.color = "#155724";
+            alertBox.innerHTML = isMorning 
+                ? "✅ Bạn đã xong ca SÁNG! Chiều mở lại tập ca tiếp theo nhé." 
+                : "🎉 Bạn đã hoàn thành xuất sắc cả 2 ca tập hôm nay!";
+            
+            btnEx1.disabled = true;
+            btnEx2.disabled = true;
+        } else {
+            alertBox.style.display = "block";
+            alertBox.style.backgroundColor = "#fff3cd";
+            alertBox.style.color = "#856404";
+            alertBox.innerHTML = isMorning 
+                ? "⏰ Bạn đang ở ca SÁNG (1h - 12h)! Hãy tập đủ cả Bài 1 và Bài 2 nhé." 
+                : "⏰ Bạn đang ở ca CHIỀU (13h - 24h)! Hãy tập đủ cả Bài 1 và Bài 2 nhé.";
+            
+            btnEx1.disabled = currentProgress.ex1;
+            btnEx2.disabled = currentProgress.ex2;
+        }
+    }
+
+    function startTimer(duration, displayId, buttonId, exNum) {
+        let timer = duration;
+        const display = document.getElementById(displayId);
+        const button = document.getElementById(buttonId);
+        button.disabled = true;
+
+        const interval = setInterval(() => {
+            timer--;
+            display.innerText = timer + "s";
+
+            if (timer <= 0) {
+                clearInterval(interval);
+                display.innerText = "Hoàn thành! 🎉";
+                playBeepSound();
+
+                if (exNum === 1) currentProgress.ex1 = true;
+                if (exNum === 2) currentProgress.ex2 = true;
+
+                // Nếu hoàn thành cả 2 bài -> Tính là xong ca hiện tại
+                if (currentProgress.ex1 && currentProgress.ex2) {
+                    const data = getTodayData();
+                    const hours = new Date().getHours();
+                    
+                    if (hours >= 1 && hours < 13) {
+                        data.morning = true;
+                    } else {
+                        data.afternoon = true;
+                    }
+                    
+                    localStorage.setItem('workout_tracker_v2', JSON.stringify(data));
+                    currentProgress = { ex1: false, ex2: false }; // Reset cho ca sau
+                }
+
+                updateUI();
+            }
+        }, 1000);
+    }
+
+    function playBeepSound() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        osc.frequency.value = 587.33;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
+    }
+
+    updateUI();
+</script>
+
+</body>
+</html>
