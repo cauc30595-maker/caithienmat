@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>vMix & ATEM Master Broadcast Control Studio 7.0 Pro</title>
+    <title>vMix & ATEM Master Control Studio 7.0 Pro</title>
     <style>
         :root {
             --bg-main: #0b0d12;
@@ -37,7 +37,7 @@
         .source-inputs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .input-group { display: flex; align-items: center; gap: 6px; }
         .input-group label { font-weight: bold; color: var(--accent-orange); font-size: 10px; min-width: 75px; }
-        input[type="text"] { background: #080a0f; border: 1px solid var(--panel-border); color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 10px; width: 220px; outline: none; }
+        input[type="text"] { background: #080a0f; border: 1px solid var(--panel-border); color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 10px; width: 240px; outline: none; }
         input[type="text"]:focus { border-color: var(--accent-cyan); }
         
         .btn { padding: 6px 12px; background: #1f2638; border: 1px solid var(--panel-border); color: #fff; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.15s; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; }
@@ -120,7 +120,7 @@
         <div class="source-inputs">
             <div class="input-group">
                 <label>📹 LUỒNG LIVE:</label>
-                <input type="text" id="streamUrl" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" placeholder="Dán Link Video MP4/YouTube...">
+                <input type="text" id="streamUrl" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" placeholder="Nhập Link MP4 hoặc Youtube URL...">
                 <button class="btn btn-red" onclick="loadMainSource()">NẠP LIVE</button>
             </div>
             <div class="input-group">
@@ -142,10 +142,12 @@
             <div class="screen-card">
                 <div class="screen-header">
                     <span style="color:var(--accent-red);">🔴 MÀN HÌNH CHÍNH (PROGRAM LIVE)</span>
-                    <span id="pgmSourceLabel">SOURCE: FILE MP4</span>
+                    <span id="pgmSourceLabel">SOURCE: DIRECT MP4</span>
                 </div>
                 <div class="viewport" id="boxMain">
                     <video id="pgmVideo" autoplay loop playsinline></video>
+                    <iframe id="pgmYoutube" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="autoplay; encrypted-media"></iframe>
+                    
                     <!-- Overlays -->
                     <div id="olScore" class="ol-score">
                         <span id="teamA">VIE</span> <span id="scoreA">0</span> - <span id="scoreB">0</span> <span id="teamB">THA</span> 
@@ -158,7 +160,7 @@
                 </div>
             </div>
 
-            <!-- VAR / REPLAY SCREEN (FIXED SLOW-MOTION & SEEK) -->
+            <!-- VAR / REPLAY SCREEN -->
             <div class="screen-card">
                 <div class="screen-header">
                     <span style="color:var(--accent-orange);">🟡 MÀN HÌNH 2 (VAR & REPLAY CONTROL)</span>
@@ -166,6 +168,8 @@
                 </div>
                 <div class="viewport" id="boxVar">
                     <video id="varVideo" autoplay loop playsinline></video>
+                    <iframe id="varYoutube" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="autoplay; encrypted-media"></iframe>
+                    
                     <div id="olVarLine" class="ol-varline"></div>
                     <div id="varBadge" class="var-badge">VAR SLOW MOTION</div>
                 </div>
@@ -189,7 +193,7 @@
         </div>
     </div>
 
-    <!-- 4. AUDIO MIXER STRIP (5 KÊNH ÂM THANH SỐ) -->
+    <!-- 4. AUDIO MIXER STRIP -->
     <div class="audio-mixer-strip">
         <div class="mixer-channel">
             <span class="mixer-title">MASTER OUT</span>
@@ -221,7 +225,7 @@
     <!-- 5. BOTTOM CONTROL DECK -->
     <div class="bottom-deck">
         
-        <!-- FIX TRIỆT ĐỂ: BỘ ĐIỀU KHIỂN TUA CHẬM MÀN HÌNH 2 (VAR ENGINE) -->
+        <!-- BỘ ĐIỀU KHIỂN TUA CHẬM MÀN HÌNH 2 -->
         <div class="panel">
             <div class="panel-header">⏪ BỘ ĐIỀU KHIỂN REPLAY & TUA CHẬM VAR (MÀN HÌNH 2)</div>
             <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px; margin-bottom:6px;">
@@ -243,7 +247,7 @@
             </div>
         </div>
 
-        <!-- SOUNDBOARD ÂM THANH TÙY CHỈNH -->
+        <!-- SOUNDBOARD ÂM THANH EFFECT -->
         <div class="panel">
             <div class="panel-header">🔊 SOUNDBOARD ÂM THANH EFFECT LIVE</div>
             <div class="sfx-grid">
@@ -258,7 +262,7 @@
             </div>
         </div>
 
-        <!-- ĐỒ HỌA & QUẢN LÝ SỰ KIỆN -->
+        <!-- ĐỒ HỌA & OVERLAYS -->
         <div class="panel">
             <div class="panel-header">📊 ĐỒ HỌA OVERLAYS & TỶ SỐ</div>
             <div style="display:flex; flex-direction:column; gap:6px;">
@@ -293,7 +297,7 @@
 
     </div>
 
-    <!-- 6. MODAL CẤU HÌNH ÂM THANH & SFX TÙY CHỈNH -->
+    <!-- 6. MODAL CẤU HÌNH ÂM THANH & SFX -->
     <div class="modal-overlay" id="audioModal">
         <div class="modal-body">
             <div class="modal-title">
@@ -301,43 +305,36 @@
                 <span style="cursor:pointer;" onclick="closeAudioSettings()">✖</span>
             </div>
             <div style="max-height:350px; overflow-y:auto; padding-right:5px;">
-                
                 <div class="setting-row">
                     <label>🎵 Nhạc nền BGM:</label>
                     <input type="text" id="urlBgm" placeholder="Link MP3 / Audio Online..." style="width:100%;">
                     <input type="file" id="fileBgm" accept="audio/*" onchange="bindAudioFile(event, 'bgm')">
                 </div>
-
                 <div class="setting-row">
                     <label>⚽ Tiếng Còi:</label>
                     <input type="text" id="urlWhistle" placeholder="Link MP3 tiếng còi..." style="width:100%;">
                     <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'whistle')">
                 </div>
-
                 <div class="setting-row">
                     <label>👏 Reo Hò:</label>
                     <input type="text" id="urlCheer" placeholder="Link MP3 tiếng reo hò..." style="width:100%;">
                     <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'cheer')">
                 </div>
-
                 <div class="setting-row">
                     <label>📢 Bàn Thắng:</label>
                     <input type="text" id="urlGoal" placeholder="Link MP3 loa hô vào..." style="width:100%;">
                     <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'goal')">
                 </div>
-
                 <div class="setting-row">
                     <label>👎 La Ó:</label>
                     <input type="text" id="urlBoo" placeholder="Link MP3 la ó..." style="width:100%;">
                     <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'boo')">
                 </div>
-
                 <div class="setting-row">
                     <label>🥁 Trống Trận:</label>
                     <input type="text" id="urlDrum" placeholder="Link MP3 tiếng trống..." style="width:100%;">
                     <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'drum')">
                 </div>
-
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
                 <button class="btn btn-green" onclick="saveAudioSettings()">LƯU & KÍCH HOẠT ÂM THANH</button>
@@ -345,7 +342,7 @@
         </div>
     </div>
 
-    <!-- AUDIO ELEMENTS STORAGE ENGINE -->
+    <!-- AUDIO ELEMENTS -->
     <audio id="audioBgm" loop></audio>
     <audio id="sfxWhistle"></audio>
     <audio id="sfxCheer"></audio>
@@ -357,24 +354,21 @@
     <audio id="sfxCustom1"></audio>
 
     <script>
-        // GLOBAL STUDIO CONTROLLER
         let pgmVideo = document.getElementById('pgmVideo');
         let varVideo = document.getElementById('varVideo');
+        let pgmYoutube = document.getElementById('pgmYoutube');
+        let varYoutube = document.getElementById('varYoutube');
         
         let volumes = { master: 0.8, pgm: 1.0, var: 0.0, bgm: 0.5, sfx: 1.0 };
         let scoreA = 0, scoreB = 0;
         let isRecording = false, recSec = 0, recInterval = null;
 
         window.onload = function() {
-            // Nạp nguồn video mặc định mượt mà
             let defaultSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
             pgmVideo.src = defaultSrc;
             varVideo.src = defaultSrc;
             
-            // Đồng bộ âm lượng ban đầu
             updateAudioVolumes();
-            
-            // Giả lập VU Meters & Chat
             setInterval(updateVuMeters, 120);
             startSimulatedChat();
             startMatchClock();
@@ -382,9 +376,104 @@
             logStudioEvent("Khởi động hệ thống Studio 7.0 PRO hoàn tất.");
         };
 
-        // 1. FIX TRIỆT ĐỂ: MÀN HÌNH 2 VAR & SLOW MOTION ENGINE
+        // 1. SMART MEDIA LOADER (TỰ ĐỘNG CHUYỂN MP4 / YOUTUBE)
+        function loadMainSource() {
+            let url = document.getElementById('streamUrl').value.trim();
+            if (!url) return;
+
+            let ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+
+            if (ytMatch && ytMatch[1]) {
+                let embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&enablejsapi=1`;
+                
+                // Hide video HTML5, show iframe YouTube
+                pgmVideo.style.display = 'none';
+                varVideo.style.display = 'none';
+                pgmVideo.pause();
+                varVideo.pause();
+
+                pgmYoutube.style.display = 'block';
+                varYoutube.style.display = 'block';
+                pgmYoutube.src = embedUrl;
+                varYoutube.src = embedUrl;
+
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: YOUTUBE EMBED";
+                logStudioEvent("Đã nạp luồng phát YouTube!");
+            } else {
+                // Show video HTML5, hide iframe YouTube
+                pgmYoutube.style.display = 'none';
+                varYoutube.style.display = 'none';
+                pgmYoutube.src = '';
+                varYoutube.src = '';
+
+                pgmVideo.style.display = 'block';
+                varVideo.style.display = 'block';
+                pgmVideo.src = url;
+                varVideo.src = url;
+                pgmVideo.play();
+                varVideo.play();
+
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: DIRECT MP4";
+                logStudioEvent("Đã nạp nguồn Video MP4.");
+            }
+        }
+
+        function loadLocalVideo(e) {
+            let file = e.target.files[0];
+            if (file) {
+                pgmYoutube.style.display = 'none';
+                varYoutube.style.display = 'none';
+                pgmVideo.style.display = 'block';
+                varVideo.style.display = 'block';
+
+                let localUrl = URL.createObjectURL(file);
+                pgmVideo.src = localUrl;
+                varVideo.src = localUrl;
+                pgmVideo.play();
+                varVideo.play();
+
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: FILE MÁY (" + file.name + ")";
+                logStudioEvent("Đã nạp video từ máy: " + file.name);
+            }
+        }
+
+        async function startWebcamInput() {
+            try {
+                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                pgmYoutube.style.display = 'none';
+                varYoutube.style.display = 'none';
+                pgmVideo.style.display = 'block';
+                varVideo.style.display = 'block';
+
+                pgmVideo.srcObject = stream;
+                varVideo.srcObject = stream;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: WEBCAM LIVE";
+                logStudioEvent("Đã kết nối trực tiếp Webcam Studio.");
+            } catch (err) {
+                alert("Không thể truy cập Webcam: " + err.message);
+            }
+        }
+
+        async function startScreenCapture() {
+            try {
+                let stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                pgmYoutube.style.display = 'none';
+                varYoutube.style.display = 'none';
+                pgmVideo.style.display = 'block';
+                varVideo.style.display = 'block';
+
+                pgmVideo.srcObject = stream;
+                varVideo.srcObject = stream;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: SCREEN CAPTURE";
+                logStudioEvent("Đã chia sẻ màn hình máy tính.");
+            } catch (err) {
+                alert("Không thể chia sẻ màn hình: " + err.message);
+            }
+        }
+
+        // 2. REPLAY & VAR CONTROL
         function setVarPlaybackSpeed(speed) {
-            if (varVideo) {
+            if (varVideo && varVideo.style.display !== 'none') {
                 varVideo.playbackRate = speed;
                 document.getElementById('valVarSpeed').innerText = speed + "x";
                 let badge = document.getElementById('varBadge');
@@ -399,8 +488,7 @@
         }
 
         function varSeek(seconds) {
-            if (varVideo && pgmVideo) {
-                // Tua dựa trên thời gian đang live của PGM
+            if (varVideo && varVideo.style.display !== 'none' && pgmVideo) {
                 let targetTime = Math.max(0, pgmVideo.currentTime + seconds);
                 varVideo.currentTime = targetTime;
                 varVideo.play();
@@ -409,21 +497,20 @@
         }
 
         function stepVarFrame(frameCount) {
-            if (varVideo) {
+            if (varVideo && varVideo.style.display !== 'none') {
                 varVideo.pause();
-                // Giả lập 1 frame = 1/30 giây
                 varVideo.currentTime += (frameCount * (1 / 30));
                 logStudioEvent(`Nhích khung hình VAR: ${frameCount > 0 ? '+1' : '-1'} frame`);
             }
         }
 
         function syncVarToPgm() {
-            if (varVideo && pgmVideo) {
+            if (varVideo && varVideo.style.display !== 'none' && pgmVideo) {
                 varVideo.currentTime = pgmVideo.currentTime;
                 varVideo.playbackRate = 1.0;
                 document.getElementById('valVarSpeed').innerText = "1.0x";
                 document.getElementById('varBadge').style.display = 'none';
-                logStudioEvent("Đã đồng bộ Màn hình 2 trùng khớp với PGM Live Realtime.");
+                logStudioEvent("Đã đồng bộ Màn hình 2 trùng khớp với PGM Live.");
             }
         }
 
@@ -432,53 +519,7 @@
             line.style.display = (line.style.display === 'none' || line.style.display === '') ? 'block' : 'none';
         }
 
-        // 2. CHUYỂN ĐỔI NGUỒN PHÁT (INPUT SOURCES)
-        function loadMainSource() {
-            let url = document.getElementById('streamUrl').value.trim();
-            if (url) {
-                pgmVideo.src = url;
-                varVideo.src = url;
-                document.getElementById('pgmSourceLabel').innerText = "SOURCE: ONLINE LINK";
-                logStudioEvent("Đã nạp nguồn video mới từ URL.");
-            }
-        }
-
-        function loadLocalVideo(e) {
-            let file = e.target.files[0];
-            if (file) {
-                let localUrl = URL.createObjectURL(file);
-                pgmVideo.src = localUrl;
-                varVideo.src = localUrl;
-                document.getElementById('pgmSourceLabel').innerText = "SOURCE: FILE MÁY (" + file.name + ")";
-                logStudioEvent("Đã nạp video từ file máy tính: " + file.name);
-            }
-        }
-
-        async function startWebcamInput() {
-            try {
-                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                pgmVideo.srcObject = stream;
-                varVideo.srcObject = stream;
-                document.getElementById('pgmSourceLabel').innerText = "SOURCE: WEBCAM LIVE";
-                logStudioEvent("Đã kết nối trực tiếp Webcam Studio.");
-            } catch (err) {
-                alert("Không thể truy cập Webcam: " + err.message);
-            }
-        }
-
-        async function startScreenCapture() {
-            try {
-                let stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                pgmVideo.srcObject = stream;
-                varVideo.srcObject = stream;
-                document.getElementById('pgmSourceLabel').innerText = "SOURCE: SCREEN CAPTURE";
-                logStudioEvent("Đã chia sẻ màn hình máy tính.");
-            } catch (err) {
-                alert("Không thể chia sẻ màn hình: " + err.message);
-            }
-        }
-
-        // 3. QUẢN LÝ CẤU HÌNH ÂM THANH & SFX TÙY CHỈNH
+        // 3. AUDIO & SFX CONFIG
         function openAudioSettings() { document.getElementById('audioModal').style.display = 'flex'; }
         function closeAudioSettings() { document.getElementById('audioModal').style.display = 'none'; }
 
@@ -502,7 +543,7 @@
             if (cheerUrl) assignAudioSource('cheer', cheerUrl);
 
             closeAudioSettings();
-            logStudioEvent("Đã cập nhật toàn bộ Cấu hình Âm thanh & SFX.");
+            logStudioEvent("Đã lưu Cấu hình Âm thanh & SFX.");
         }
 
         function assignAudioSource(type, src) {
@@ -515,20 +556,13 @@
         }
 
         function playCustomSFX(type) {
-            let audioEl = null;
-            if (type === 'whistle') audioEl = document.getElementById('sfxWhistle');
-            if (type === 'cheer') audioEl = document.getElementById('sfxCheer');
-            if (type === 'goal') audioEl = document.getElementById('sfxGoal');
-            if (type === 'boo') audioEl = document.getElementById('sfxBoo');
-            if (type === 'drum') audioEl = document.getElementById('sfxDrum');
-            
+            let audioEl = document.getElementById('sfx' + type.charAt(0).toUpperCase() + type.slice(1));
             if (audioEl && audioEl.src) {
                 audioEl.currentTime = 0;
                 audioEl.volume = volumes.sfx * volumes.master;
                 audioEl.play();
                 logStudioEvent("Kích hoạt Sound Effect: " + type);
             } else {
-                // Web Audio Synthesizer dự phòng khi chưa nạp file
                 playSynthSound(type);
             }
         }
@@ -542,10 +576,10 @@
             
             if (type === 'whistle') { osc.frequency.value = 2800; osc.start(); osc.stop(ctx.currentTime + 0.3); }
             else { osc.frequency.value = 400; osc.start(); osc.stop(ctx.currentTime + 0.5); }
-            logStudioEvent("Kích hoạt Âm thanh Giả lập (Synthesizer): " + type);
+            logStudioEvent("Phát Âm thanh Giả lập (Synthesizer): " + type);
         }
 
-        // 4. MIXER ÂM THANH & VU METERS
+        // 4. MIXER & OVERLAYS
         function setChannelVolume(channel, val) {
             volumes[channel] = val / 100;
             updateAudioVolumes();
@@ -565,7 +599,6 @@
             document.getElementById('vuSfx').style.height = (volumes.sfx * 10) + "%";
         }
 
-        // 5. ĐỒ HỌA & SWITCHER CONTROL
         function toggleOverlay(id) {
             let el = document.getElementById(id);
             el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
@@ -579,13 +612,8 @@
 
         function toggleFTB() {
             let box = document.getElementById('boxMain');
-            if (box.style.filter === 'brightness(0)') {
-                box.style.filter = 'brightness(1)';
-                logStudioEvent("Tắt FTB - Khôi phục hình ảnh Studio.");
-            } else {
-                box.style.filter = 'brightness(0)';
-                logStudioEvent("Bật FTB - Tối đen màn hình khẩn cấp.");
-            }
+            box.style.filter = box.style.filter === 'brightness(0)' ? 'brightness(1)' : 'brightness(0)';
+            logStudioEvent("Chuyển đổi trạng thái FTB.");
         }
 
         function toggleRecording() {
@@ -622,7 +650,6 @@
             logStudioEvent("Bật/Tắt chế độ Picture-in-Picture (PiP).");
         }
 
-        // 6. UTILS & CHAT LOG
         function logStudioEvent(msg) {
             let box = document.getElementById('logContainer');
             let time = new Date().toLocaleTimeString();
