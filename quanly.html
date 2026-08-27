@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vMix & ATEM Master Broadcast Control Studio 7.0 Pro</title>
+    <style>
+        :root {
+            --bg-main: #0b0d12;
+            --panel-bg: #141722;
+            --panel-border: #23293c;
+            --accent-red: #ff2a2a;
+            --accent-green: #00e676;
+            --accent-orange: #ff9100;
+            --accent-cyan: #00e5ff;
+            --accent-purple: #b388ff;
+            --text-primary: #ffffff;
+            --text-secondary: #90a4ae;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg-main); color: var(--text-primary); padding: 10px; font-size: 11px; user-select: none; }
+
+        /* Top Telemetry & Header Bar */
+        .top-header { display: flex; justify-content: space-between; align-items: center; background: var(--panel-bg); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--panel-border); margin-bottom: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .studio-brand { font-size: 15px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
+        .tally-light { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); animation: pulse 1s infinite; }
+        @keyframes pulse { 50% { opacity: 0.3; } }
+        
+        .telemetry-bar { display: flex; gap: 10px; }
+        .tele-item { background: #0b0d12; padding: 4px 10px; border-radius: 5px; border: 1px solid #1c2234; text-align: center; font-family: monospace; }
+        .tele-val { font-weight: bold; color: var(--accent-green); font-size: 11px; display: block; }
+        .tele-lbl { font-size: 8px; color: var(--text-secondary); text-transform: uppercase; }
+
+        /* Source Bar & Action Buttons */
+        .source-bar { display: grid; grid-template-columns: 1fr auto; gap: 10px; background: var(--panel-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border); margin-bottom: 10px; }
+        .source-inputs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .input-group { display: flex; align-items: center; gap: 6px; }
+        .input-group label { font-weight: bold; color: var(--accent-orange); font-size: 10px; min-width: 75px; }
+        input[type="text"] { background: #080a0f; border: 1px solid var(--panel-border); color: #fff; padding: 6px 10px; border-radius: 4px; font-size: 10px; width: 220px; outline: none; }
+        input[type="text"]:focus { border-color: var(--accent-cyan); }
+        
+        .btn { padding: 6px 12px; background: #1f2638; border: 1px solid var(--panel-border); color: #fff; border-radius: 4px; font-weight: bold; cursor: pointer; transition: all 0.15s; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn:hover { background: #2a344d; border-color: #3b486b; transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn-red { background: var(--accent-red); border: none; }
+        .btn-orange { background: var(--accent-orange); color: #000; border: none; }
+        .btn-green { background: var(--accent-green); color: #000; border: none; }
+        .btn-cyan { background: var(--accent-cyan); color: #000; border: none; }
+        .btn-purple { background: var(--accent-purple); color: #000; border: none; }
+
+        /* Workspace Viewports */
+        .workspace-grid { display: grid; grid-template-columns: 1fr 280px; gap: 10px; margin-bottom: 10px; }
+        .screens-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .screen-card { background: var(--panel-bg); border-radius: 8px; border: 1px solid var(--panel-border); overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .screen-header { background: #10131d; padding: 6px 12px; font-weight: bold; font-size: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--panel-border); }
+        
+        .viewport { position: relative; padding-top: 56.25%; background: #000; overflow: hidden; }
+        .viewport video, .viewport iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; object-fit: contain; }
+
+        /* Overlays */
+        .ol-score { position: absolute; top: 10px; left: 10px; background: rgba(11, 13, 18, 0.92); padding: 6px 12px; border-radius: 5px; border-left: 4px solid var(--accent-red); display: none; z-index: 20; font-family: monospace; font-size: 12px; }
+        .ol-ticker { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--accent-red); color: white; padding: 4px 0; overflow: hidden; white-space: nowrap; font-weight: bold; font-size: 10px; display: none; z-index: 20; }
+        .ticker-text { display: inline-block; animation: marquee 12s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .ol-lower3rd { position: absolute; bottom: 25px; left: 10px; background: rgba(0, 229, 255, 0.9); color: #000; padding: 5px 12px; border-radius: 4px; font-weight: bold; display: none; z-index: 20; }
+        .ol-varline { position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: var(--accent-green); display: none; z-index: 21; box-shadow: 0 0 8px var(--accent-green); }
+        .var-badge { position: absolute; top: 10px; right: 10px; background: var(--accent-orange); color: #000; font-weight: 900; padding: 3px 8px; border-radius: 3px; font-size: 10px; display: none; z-index: 22; }
+
+        /* Sidebar Panels */
+        .sidebar { display: flex; flex-direction: column; gap: 10px; }
+        .panel { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 10px; }
+        .panel-header { font-size: 10px; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid var(--panel-border); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-box { height: 120px; overflow-y: auto; background: #080a0f; border: 1px solid var(--panel-border); border-radius: 4px; padding: 6px; font-size: 9px; display: flex; flex-direction: column; gap: 4px; }
+        .log-box { height: 80px; overflow-y: auto; background: #080a0f; border: 1px solid var(--panel-border); border-radius: 4px; padding: 6px; font-family: monospace; font-size: 8px; color: var(--accent-green); }
+
+        /* Audio Mixer Strip Section */
+        .audio-mixer-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; background: var(--panel-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border); margin-bottom: 10px; }
+        .mixer-channel { background: #0b0d12; padding: 8px; border-radius: 6px; border: 1px solid var(--panel-border); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .mixer-title { font-size: 9px; font-weight: bold; color: var(--text-secondary); text-align: center; }
+        .vu-meter-vert { width: 8px; height: 50px; background: #1a1e2d; border-radius: 4px; position: relative; overflow: hidden; }
+        .vu-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, var(--accent-green), var(--accent-orange), var(--accent-red)); height: 60%; transition: height 0.1s; }
+        .fader-slider { width: 100%; accent-color: var(--accent-cyan); }
+
+        /* Bottom Control Deck */
+        .bottom-deck { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+        .sfx-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .sfx-card { background: #181d2a; border: 1px solid var(--panel-border); color: #fff; padding: 8px 4px; border-radius: 4px; cursor: pointer; text-align: center; font-weight: bold; font-size: 9px; transition: 0.15s; }
+        .sfx-card:hover { background: #252d42; border-color: var(--accent-cyan); }
+        .sfx-card:active { background: var(--accent-red); }
+
+        /* Modal Settings */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(4px); }
+        .modal-body { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 8px; width: 550px; max-width: 90%; padding: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .modal-title { font-size: 13px; font-weight: bold; color: var(--accent-orange); margin-bottom: 12px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--panel-border); padding-bottom: 6px; }
+        .setting-row { display: grid; grid-template-columns: 100px 1fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+        .setting-row label { font-size: 10px; font-weight: bold; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+    <!-- 1. HEADER TELEMETRY BAR -->
+    <div class="top-header">
+        <div class="studio-brand">
+            <div class="tally-light"></div>
+            <span>vMix MASTER STUDIO 7.0 PRO</span>
+            <span id="recStatusBadge" class="btn btn-red" style="padding:2px 8px; display:none; font-size:9px;">● REC 00:00:00</span>
+        </div>
+        <div class="telemetry-bar">
+            <div class="tele-item"><span class="tele-val" id="valFps">60.0</span><span class="tele-lbl">FPS</span></div>
+            <div class="tele-item"><span class="tele-val" id="valBitrate">9500 Kbps</span><span class="tele-lbl">BITRATE</span></div>
+            <div class="tele-item"><span class="tele-val" id="valFormat">1080p60</span><span class="tele-lbl">FORMAT</span></div>
+            <div class="tele-item"><span class="tele-val" id="valViewers">32,840</span><span class="tele-lbl">VIEWERS</span></div>
+            <div class="tele-item"><span class="tele-val" id="valVarSpeed">1.0x</span><span class="tele-lbl">VAR SPEED</span></div>
+        </div>
+    </div>
+
+    <!-- 2. SOURCE INPUT CONTROL BAR -->
+    <div class="source-bar">
+        <div class="source-inputs">
+            <div class="input-group">
+                <label>📹 LUỒNG LIVE:</label>
+                <input type="text" id="streamUrl" value="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" placeholder="Dán Link Video MP4/YouTube...">
+                <button class="btn btn-red" onclick="loadMainSource()">NẠP LIVE</button>
+            </div>
+            <div class="input-group">
+                <input type="file" id="localVideoFile" accept="video/*" style="display:none;" onchange="loadLocalVideo(event)">
+                <button class="btn btn-orange" onclick="document.getElementById('localVideoFile').click()">📁 FILE MÁY</button>
+                <button class="btn btn-green" onclick="startWebcamInput()">🎥 WEBCAM</button>
+                <button class="btn btn-cyan" onclick="startScreenCapture()">🖥️ MÀN HÌNH</button>
+            </div>
+        </div>
+        <div>
+            <button class="btn btn-purple" onclick="openAudioSettings()">⚙️ CẤU HÌNH ÂM THANH / SFX</button>
+        </div>
+    </div>
+
+    <!-- 3. MAIN WORKSPACE VIEWPORTS -->
+    <div class="workspace-grid">
+        <div class="screens-container">
+            <!-- PGM LIVE SCREEN -->
+            <div class="screen-card">
+                <div class="screen-header">
+                    <span style="color:var(--accent-red);">🔴 MÀN HÌNH CHÍNH (PROGRAM LIVE)</span>
+                    <span id="pgmSourceLabel">SOURCE: FILE MP4</span>
+                </div>
+                <div class="viewport" id="boxMain">
+                    <video id="pgmVideo" autoplay loop playsinline></video>
+                    <!-- Overlays -->
+                    <div id="olScore" class="ol-score">
+                        <span id="teamA">VIE</span> <span id="scoreA">0</span> - <span id="scoreB">0</span> <span id="teamB">THA</span> 
+                        <span style="color:var(--accent-orange); margin-left:6px;" id="matchTime">00:00</span>
+                    </div>
+                    <div id="olTicker" class="ol-ticker">
+                        <span class="ticker-text">TRỰC TIẾP TRẬN ĐẤU BÓNG ĐÁ - CHÀO MỪNG QUÝ VỊ KHÁN GIẢ THEO DÕI LIVE TRANSMISSION!</span>
+                    </div>
+                    <div id="olLower3rd" class="ol-lower3rd">🎙 BLV: BẢO LONG & HOÀNG NAM</div>
+                </div>
+            </div>
+
+            <!-- VAR / REPLAY SCREEN (FIXED SLOW-MOTION & SEEK) -->
+            <div class="screen-card">
+                <div class="screen-header">
+                    <span style="color:var(--accent-orange);">🟡 MÀN HÌNH 2 (VAR & REPLAY CONTROL)</span>
+                    <span id="varStatusLabel">REPLAY FEED: READY</span>
+                </div>
+                <div class="viewport" id="boxVar">
+                    <video id="varVideo" autoplay loop playsinline></video>
+                    <div id="olVarLine" class="ol-varline"></div>
+                    <div id="varBadge" class="var-badge">VAR SLOW MOTION</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR CHAT & LOGS -->
+        <div class="sidebar">
+            <div class="panel">
+                <div class="panel-header">💬 CHAT KHÁN GIẢ <button class="btn" onclick="clearChat()" style="padding:2px 5px; font-size:8px;">XÓA</button></div>
+                <div class="chat-box" id="chatContainer"></div>
+                <div style="display:flex; gap:4px; margin-top:5px;">
+                    <input type="text" id="customChatInput" placeholder="Nhập comment giả lập..." style="flex:1; width:auto;">
+                    <button class="btn btn-cyan" onclick="sendCustomChat()">GỬI</button>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-header">📋 LOG STUDIO <button class="btn" onclick="clearLogs()" style="padding:2px 5px; font-size:8px;">XÓA</button></div>
+                <div class="log-box" id="logContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. AUDIO MIXER STRIP (5 KÊNH ÂM THANH SỐ) -->
+    <div class="audio-mixer-strip">
+        <div class="mixer-channel">
+            <span class="mixer-title">MASTER OUT</span>
+            <div class="vu-meter-vert"><div class="vu-fill" id="vuMaster"></div></div>
+            <input type="range" class="fader-slider" min="0" max="100" value="80" oninput="setChannelVolume('master', this.value)">
+        </div>
+        <div class="mixer-channel">
+            <span class="mixer-title">VIDEO LIVE</span>
+            <div class="vu-meter-vert"><div class="vu-fill" id="vuPgm"></div></div>
+            <input type="range" class="fader-slider" min="0" max="100" value="100" oninput="setChannelVolume('pgm', this.value)">
+        </div>
+        <div class="mixer-channel">
+            <span class="mixer-title">VAR / REPLAY</span>
+            <div class="vu-meter-vert"><div class="vu-fill" id="vuVar"></div></div>
+            <input type="range" class="fader-slider" min="0" max="100" value="0" oninput="setChannelVolume('var', this.value)">
+        </div>
+        <div class="mixer-channel">
+            <span class="mixer-title">NHẠC NỀN (BGM)</span>
+            <div class="vu-meter-vert"><div class="vu-fill" id="vuBgm"></div></div>
+            <input type="range" class="fader-slider" min="0" max="100" value="50" oninput="setChannelVolume('bgm', this.value)">
+        </div>
+        <div class="mixer-channel">
+            <span class="mixer-title">HIỆU ỨNG (SFX)</span>
+            <div class="vu-meter-vert"><div class="vu-fill" id="vuSfx"></div></div>
+            <input type="range" class="fader-slider" min="0" max="100" value="100" oninput="setChannelVolume('sfx', this.value)">
+        </div>
+    </div>
+
+    <!-- 5. BOTTOM CONTROL DECK -->
+    <div class="bottom-deck">
+        
+        <!-- FIX TRIỆT ĐỂ: BỘ ĐIỀU KHIỂN TUA CHẬM MÀN HÌNH 2 (VAR ENGINE) -->
+        <div class="panel">
+            <div class="panel-header">⏪ BỘ ĐIỀU KHIỂN REPLAY & TUA CHẬM VAR (MÀN HÌNH 2)</div>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px; margin-bottom:6px;">
+                <button class="btn btn-orange" onclick="varSeek(-5)">⏮ -5 Giây</button>
+                <button class="btn btn-orange" onclick="varSeek(-10)">⏮ -10 Giây</button>
+                <button class="btn btn-orange" onclick="varSeek(-15)">⏮ -15 Giây</button>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:4px; margin-bottom:6px;">
+                <button class="btn btn-green" onclick="setVarPlaybackSpeed(0.1)">🐢 0.1x</button>
+                <button class="btn btn-green" onclick="setVarPlaybackSpeed(0.25)">🐢 0.25x</button>
+                <button class="btn btn-green" onclick="setVarPlaybackSpeed(0.5)">🐢 0.5x</button>
+                <button class="btn btn-green" onclick="setVarPlaybackSpeed(1.0)">▶ 1.0x</button>
+            </div>
+            <div style="display:flex; gap:4px;">
+                <button class="btn btn-cyan" style="flex:1;" onclick="stepVarFrame(-1)">⏮ Khung trước</button>
+                <button class="btn btn-cyan" style="flex:1;" onclick="stepVarFrame(1)">⏭ Khung sau</button>
+                <button class="btn btn-purple" style="flex:1;" onclick="syncVarToPgm()">🔄 ĐỒNG BỘ LIVE</button>
+                <button class="btn btn-orange" style="flex:1;" onclick="toggleVarLine()">📐 ĐƯỜNG VAR</button>
+            </div>
+        </div>
+
+        <!-- SOUNDBOARD ÂM THANH TÙY CHỈNH -->
+        <div class="panel">
+            <div class="panel-header">🔊 SOUNDBOARD ÂM THANH EFFECT LIVE</div>
+            <div class="sfx-grid">
+                <div class="sfx-card" onclick="playCustomSFX('whistle')">⚽ Còi Hết Giờ</div>
+                <div class="sfx-card" onclick="playCustomSFX('cheer')">👏 Reo Hò khán giả</div>
+                <div class="sfx-card" onclick="playCustomSFX('goal')">📢 Loa VÀO!</div>
+                <div class="sfx-card" onclick="playCustomSFX('boo')">👎 Khán giả La Ó</div>
+                <div class="sfx-card" onclick="playCustomSFX('drum')">🥁 Trống Trận</div>
+                <div class="sfx-card" onclick="playCustomSFX('card')">🟨 Thẻ Vàng/Đỏ</div>
+                <div class="sfx-card" onclick="playCustomSFX('bell')">🔔 Chuông</div>
+                <div class="sfx-card" onclick="playCustomSFX('custom1')">⭐ Effect 1</div>
+            </div>
+        </div>
+
+        <!-- ĐỒ HỌA & QUẢN LÝ SỰ KIỆN -->
+        <div class="panel">
+            <div class="panel-header">📊 ĐỒ HỌA OVERLAYS & TỶ SỐ</div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <span>VIE: <b id="cntA" style="color:var(--accent-cyan);">0</b></span>
+                    <button class="btn" onclick="modScore('A', 1)">+1</button>
+                    <button class="btn" onclick="modScore('A', -1)">-1</button>
+                    <span>THA: <b id="cntB" style="color:var(--accent-cyan);">0</b></span>
+                    <button class="btn" onclick="modScore('B', 1)">+1</button>
+                    <button class="btn" onclick="modScore('B', -1)">-1</button>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:4px;">
+                    <button class="btn btn-orange" onclick="toggleOverlay('olScore')">Tỷ Số</button>
+                    <button class="btn btn-orange" onclick="toggleOverlay('olTicker')">Ticker</button>
+                    <button class="btn btn-orange" onclick="toggleOverlay('olLower3rd')">BLV Banner</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SWITCHER & VẬN HÀNH SÓNG -->
+        <div class="panel">
+            <div class="panel-header">⚙️ SWITCHER & ĐIỀU HÀNH SÓNG</div>
+            <div style="display:flex; gap:4px; margin-bottom:6px;">
+                <button class="btn btn-red" style="flex:1;" id="btnRec" onclick="toggleRecording()">🔴 GHI HÌNH (REC)</button>
+                <button class="btn btn-purple" style="flex:1;" onclick="togglePipMode()">🖼️ CHẾ ĐỘ PiP</button>
+            </div>
+            <div style="display:flex; gap:4px;">
+                <button class="btn btn-orange" style="flex:1;" onclick="toggleFTB()">⬛ FTB (TỐI MÀN HÌNH)</button>
+                <button class="btn btn-green" style="flex:1;" onclick="logStudioEvent('📌 Đánh dấu mốc Highlight')">📌 MARK CLIP</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 6. MODAL CẤU HÌNH ÂM THANH & SFX TÙY CHỈNH -->
+    <div class="modal-overlay" id="audioModal">
+        <div class="modal-body">
+            <div class="modal-title">
+                <span>⚙️ CẤU HÌNH NGUỒN ÂM THANH & EFFECT SFX TÙY CHỈNH</span>
+                <span style="cursor:pointer;" onclick="closeAudioSettings()">✖</span>
+            </div>
+            <div style="max-height:350px; overflow-y:auto; padding-right:5px;">
+                
+                <div class="setting-row">
+                    <label>🎵 Nhạc nền BGM:</label>
+                    <input type="text" id="urlBgm" placeholder="Link MP3 / Audio Online..." style="width:100%;">
+                    <input type="file" id="fileBgm" accept="audio/*" onchange="bindAudioFile(event, 'bgm')">
+                </div>
+
+                <div class="setting-row">
+                    <label>⚽ Tiếng Còi:</label>
+                    <input type="text" id="urlWhistle" placeholder="Link MP3 tiếng còi..." style="width:100%;">
+                    <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'whistle')">
+                </div>
+
+                <div class="setting-row">
+                    <label>👏 Reo Hò:</label>
+                    <input type="text" id="urlCheer" placeholder="Link MP3 tiếng reo hò..." style="width:100%;">
+                    <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'cheer')">
+                </div>
+
+                <div class="setting-row">
+                    <label>📢 Bàn Thắng:</label>
+                    <input type="text" id="urlGoal" placeholder="Link MP3 loa hô vào..." style="width:100%;">
+                    <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'goal')">
+                </div>
+
+                <div class="setting-row">
+                    <label>👎 La Ó:</label>
+                    <input type="text" id="urlBoo" placeholder="Link MP3 la ó..." style="width:100%;">
+                    <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'boo')">
+                </div>
+
+                <div class="setting-row">
+                    <label>🥁 Trống Trận:</label>
+                    <input type="text" id="urlDrum" placeholder="Link MP3 tiếng trống..." style="width:100%;">
+                    <input type="file" accept="audio/*" onchange="bindAudioFile(event, 'drum')">
+                </div>
+
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+                <button class="btn btn-green" onclick="saveAudioSettings()">LƯU & KÍCH HOẠT ÂM THANH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO ELEMENTS STORAGE ENGINE -->
+    <audio id="audioBgm" loop></audio>
+    <audio id="sfxWhistle"></audio>
+    <audio id="sfxCheer"></audio>
+    <audio id="sfxGoal"></audio>
+    <audio id="sfxBoo"></audio>
+    <audio id="sfxDrum"></audio>
+    <audio id="sfxCard"></audio>
+    <audio id="sfxBell"></audio>
+    <audio id="sfxCustom1"></audio>
+
+    <script>
+        // GLOBAL STUDIO CONTROLLER
+        let pgmVideo = document.getElementById('pgmVideo');
+        let varVideo = document.getElementById('varVideo');
+        
+        let volumes = { master: 0.8, pgm: 1.0, var: 0.0, bgm: 0.5, sfx: 1.0 };
+        let scoreA = 0, scoreB = 0;
+        let isRecording = false, recSec = 0, recInterval = null;
+
+        window.onload = function() {
+            // Nạp nguồn video mặc định mượt mà
+            let defaultSrc = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+            pgmVideo.src = defaultSrc;
+            varVideo.src = defaultSrc;
+            
+            // Đồng bộ âm lượng ban đầu
+            updateAudioVolumes();
+            
+            // Giả lập VU Meters & Chat
+            setInterval(updateVuMeters, 120);
+            startSimulatedChat();
+            startMatchClock();
+            
+            logStudioEvent("Khởi động hệ thống Studio 7.0 PRO hoàn tất.");
+        };
+
+        // 1. FIX TRIỆT ĐỂ: MÀN HÌNH 2 VAR & SLOW MOTION ENGINE
+        function setVarPlaybackSpeed(speed) {
+            if (varVideo) {
+                varVideo.playbackRate = speed;
+                document.getElementById('valVarSpeed').innerText = speed + "x";
+                let badge = document.getElementById('varBadge');
+                if (speed < 1.0) {
+                    badge.style.display = 'block';
+                    badge.innerText = `VAR SLOW MOTION: ${speed}X`;
+                } else {
+                    badge.style.display = 'none';
+                }
+                logStudioEvent(`Màn hình 2 VAR chỉnh tốc độ: ${speed}x`);
+            }
+        }
+
+        function varSeek(seconds) {
+            if (varVideo && pgmVideo) {
+                // Tua dựa trên thời gian đang live của PGM
+                let targetTime = Math.max(0, pgmVideo.currentTime + seconds);
+                varVideo.currentTime = targetTime;
+                varVideo.play();
+                logStudioEvent(`Màn hình 2 Tua lại VAR: ${seconds}s (Vị trí: ${Math.floor(targetTime)}s)`);
+            }
+        }
+
+        function stepVarFrame(frameCount) {
+            if (varVideo) {
+                varVideo.pause();
+                // Giả lập 1 frame = 1/30 giây
+                varVideo.currentTime += (frameCount * (1 / 30));
+                logStudioEvent(`Nhích khung hình VAR: ${frameCount > 0 ? '+1' : '-1'} frame`);
+            }
+        }
+
+        function syncVarToPgm() {
+            if (varVideo && pgmVideo) {
+                varVideo.currentTime = pgmVideo.currentTime;
+                varVideo.playbackRate = 1.0;
+                document.getElementById('valVarSpeed').innerText = "1.0x";
+                document.getElementById('varBadge').style.display = 'none';
+                logStudioEvent("Đã đồng bộ Màn hình 2 trùng khớp với PGM Live Realtime.");
+            }
+        }
+
+        function toggleVarLine() {
+            let line = document.getElementById('olVarLine');
+            line.style.display = (line.style.display === 'none' || line.style.display === '') ? 'block' : 'none';
+        }
+
+        // 2. CHUYỂN ĐỔI NGUỒN PHÁT (INPUT SOURCES)
+        function loadMainSource() {
+            let url = document.getElementById('streamUrl').value.trim();
+            if (url) {
+                pgmVideo.src = url;
+                varVideo.src = url;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: ONLINE LINK";
+                logStudioEvent("Đã nạp nguồn video mới từ URL.");
+            }
+        }
+
+        function loadLocalVideo(e) {
+            let file = e.target.files[0];
+            if (file) {
+                let localUrl = URL.createObjectURL(file);
+                pgmVideo.src = localUrl;
+                varVideo.src = localUrl;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: FILE MÁY (" + file.name + ")";
+                logStudioEvent("Đã nạp video từ file máy tính: " + file.name);
+            }
+        }
+
+        async function startWebcamInput() {
+            try {
+                let stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                pgmVideo.srcObject = stream;
+                varVideo.srcObject = stream;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: WEBCAM LIVE";
+                logStudioEvent("Đã kết nối trực tiếp Webcam Studio.");
+            } catch (err) {
+                alert("Không thể truy cập Webcam: " + err.message);
+            }
+        }
+
+        async function startScreenCapture() {
+            try {
+                let stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                pgmVideo.srcObject = stream;
+                varVideo.srcObject = stream;
+                document.getElementById('pgmSourceLabel').innerText = "SOURCE: SCREEN CAPTURE";
+                logStudioEvent("Đã chia sẻ màn hình máy tính.");
+            } catch (err) {
+                alert("Không thể chia sẻ màn hình: " + err.message);
+            }
+        }
+
+        // 3. QUẢN LÝ CẤU HÌNH ÂM THANH & SFX TÙY CHỈNH
+        function openAudioSettings() { document.getElementById('audioModal').style.display = 'flex'; }
+        function closeAudioSettings() { document.getElementById('audioModal').style.display = 'none'; }
+
+        function bindAudioFile(event, type) {
+            let file = event.target.files[0];
+            if (file) {
+                let url = URL.createObjectURL(file);
+                assignAudioSource(type, url);
+                logStudioEvent(`Đã nạp file âm thanh cho [${type}]: ${file.name}`);
+            }
+        }
+
+        function saveAudioSettings() {
+            let bgmUrl = document.getElementById('urlBgm').value.trim();
+            if (bgmUrl) assignAudioSource('bgm', bgmUrl);
+            
+            let whistleUrl = document.getElementById('urlWhistle').value.trim();
+            if (whistleUrl) assignAudioSource('whistle', whistleUrl);
+
+            let cheerUrl = document.getElementById('urlCheer').value.trim();
+            if (cheerUrl) assignAudioSource('cheer', cheerUrl);
+
+            closeAudioSettings();
+            logStudioEvent("Đã cập nhật toàn bộ Cấu hình Âm thanh & SFX.");
+        }
+
+        function assignAudioSource(type, src) {
+            if (type === 'bgm') { document.getElementById('audioBgm').src = src; document.getElementById('audioBgm').play(); }
+            if (type === 'whistle') document.getElementById('sfxWhistle').src = src;
+            if (type === 'cheer') document.getElementById('sfxCheer').src = src;
+            if (type === 'goal') document.getElementById('sfxGoal').src = src;
+            if (type === 'boo') document.getElementById('sfxBoo').src = src;
+            if (type === 'drum') document.getElementById('sfxDrum').src = src;
+        }
+
+        function playCustomSFX(type) {
+            let audioEl = null;
+            if (type === 'whistle') audioEl = document.getElementById('sfxWhistle');
+            if (type === 'cheer') audioEl = document.getElementById('sfxCheer');
+            if (type === 'goal') audioEl = document.getElementById('sfxGoal');
+            if (type === 'boo') audioEl = document.getElementById('sfxBoo');
+            if (type === 'drum') audioEl = document.getElementById('sfxDrum');
+            
+            if (audioEl && audioEl.src) {
+                audioEl.currentTime = 0;
+                audioEl.volume = volumes.sfx * volumes.master;
+                audioEl.play();
+                logStudioEvent("Kích hoạt Sound Effect: " + type);
+            } else {
+                // Web Audio Synthesizer dự phòng khi chưa nạp file
+                playSynthSound(type);
+            }
+        }
+
+        function playSynthSound(type) {
+            let ctx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = ctx.createOscillator();
+            let gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            gain.gain.value = volumes.sfx * volumes.master * 0.3;
+            
+            if (type === 'whistle') { osc.frequency.value = 2800; osc.start(); osc.stop(ctx.currentTime + 0.3); }
+            else { osc.frequency.value = 400; osc.start(); osc.stop(ctx.currentTime + 0.5); }
+            logStudioEvent("Kích hoạt Âm thanh Giả lập (Synthesizer): " + type);
+        }
+
+        // 4. MIXER ÂM THANH & VU METERS
+        function setChannelVolume(channel, val) {
+            volumes[channel] = val / 100;
+            updateAudioVolumes();
+        }
+
+        function updateAudioVolumes() {
+            pgmVideo.volume = volumes.pgm * volumes.master;
+            varVideo.volume = volumes.var * volumes.master;
+            document.getElementById('audioBgm').volume = volumes.bgm * volumes.master;
+        }
+
+        function updateVuMeters() {
+            document.getElementById('vuMaster').style.height = (volumes.master * (Math.random() * 30 + 60)) + "%";
+            document.getElementById('vuPgm').style.height = (volumes.pgm * (Math.random() * 40 + 50)) + "%";
+            document.getElementById('vuVar').style.height = (volumes.var * (Math.random() * 40 + 40)) + "%";
+            document.getElementById('vuBgm').style.height = (volumes.bgm * (Math.random() * 20 + 30)) + "%";
+            document.getElementById('vuSfx').style.height = (volumes.sfx * 10) + "%";
+        }
+
+        // 5. ĐỒ HỌA & SWITCHER CONTROL
+        function toggleOverlay(id) {
+            let el = document.getElementById(id);
+            el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+        }
+
+        function modScore(team, val) {
+            if (team === 'A') { scoreA = Math.max(0, scoreA + val); document.getElementById('scoreA').innerText = scoreA; document.getElementById('cntA').innerText = scoreA; }
+            else { scoreB = Math.max(0, scoreB + val); document.getElementById('scoreB').innerText = scoreB; document.getElementById('cntB').innerText = scoreB; }
+            logStudioEvent(`Cập nhật tỷ số: VIE ${scoreA} - ${scoreB} THA`);
+        }
+
+        function toggleFTB() {
+            let box = document.getElementById('boxMain');
+            if (box.style.filter === 'brightness(0)') {
+                box.style.filter = 'brightness(1)';
+                logStudioEvent("Tắt FTB - Khôi phục hình ảnh Studio.");
+            } else {
+                box.style.filter = 'brightness(0)';
+                logStudioEvent("Bật FTB - Tối đen màn hình khẩn cấp.");
+            }
+        }
+
+        function toggleRecording() {
+            isRecording = !isRecording;
+            let badge = document.getElementById('recStatusBadge');
+            let btn = document.getElementById('btnRec');
+            if (isRecording) {
+                badge.style.display = 'inline-block';
+                btn.innerText = "⏹ DỪNG GHI HÌNH";
+                recSec = 0;
+                recInterval = setInterval(() => {
+                    recSec++;
+                    let h = String(Math.floor(recSec / 3600)).padStart(2, '0');
+                    let m = String(Math.floor((recSec % 3600) / 60)).padStart(2, '0');
+                    let s = String(recSec % 60).padStart(2, '0');
+                    badge.innerText = `● REC ${h}:${m}:${s}`;
+                }, 1000);
+                logStudioEvent("Bắt đầu ghi hình Broadcast HD.");
+            } else {
+                badge.style.display = 'none';
+                btn.innerText = "🔴 GHI HÌNH (REC)";
+                clearInterval(recInterval);
+                logStudioEvent("Đã dừng ghi hình.");
+            }
+        }
+
+        function togglePipMode() {
+            let v = document.getElementById('boxVar');
+            if (v.style.position === 'absolute') {
+                v.style.position = 'relative'; v.style.width = '100%'; v.style.zIndex = '1';
+            } else {
+                v.style.position = 'absolute'; v.style.width = '200px'; v.style.bottom = '10px'; v.style.right = '10px'; v.style.zIndex = '30';
+            }
+            logStudioEvent("Bật/Tắt chế độ Picture-in-Picture (PiP).");
+        }
+
+        // 6. UTILS & CHAT LOG
+        function logStudioEvent(msg) {
+            let box = document.getElementById('logContainer');
+            let time = new Date().toLocaleTimeString();
+            box.innerHTML += `[${time}] ${msg}<br>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function clearLogs() { document.getElementById('logContainer').innerHTML = ""; }
+        function clearChat() { document.getElementById('chatContainer').innerHTML = ""; }
+
+        function sendCustomChat() {
+            let inp = document.getElementById('customChatInput');
+            if (inp.value.trim()) {
+                let box = document.getElementById('chatContainer');
+                box.innerHTML += `<div><b style="color:var(--accent-cyan);">BLV Long:</b> ${inp.value}</div>`;
+                box.scrollTop = box.scrollHeight;
+                inp.value = "";
+            }
+        }
+
+        function startSimulatedChat() {
+            setInterval(() => {
+                let users = ["AnhTuan", "GiaBao", "QuocViet", "MinhHoang"];
+                let msgs = ["Pha này VAR đi trọng tài!", "Trận đấu hay quá!", "Sút căng đét!", "Việt Nam cố lên!"];
+                let u = users[Math.floor(Math.random() * users.length)];
+                let m = msgs[Math.floor(Math.random() * msgs.length)];
+                let box = document.getElementById('chatContainer');
+                box.innerHTML += `<div><b style="color:var(--accent-orange);">${u}:</b> ${m}</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 3000);
+        }
+
+        function startMatchClock() {
+            let s = 0;
+            setInterval(() => {
+                s++;
+                let min = String(Math.floor(s / 60)).padStart(2, '0');
+                let sec = String(s % 60).padStart(2, '0');
+                document.getElementById('matchTime').innerText = `${min}:${sec}`;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
